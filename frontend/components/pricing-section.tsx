@@ -52,8 +52,8 @@ export default function PricingSection() {
   return (
     <SectionContainer hasBg>
       <SectionHeader
-        title="투명한 토큰 기반 요금제"
-        subtitle="필요할 때만 사용하고, 사용한 만큼만 지불하세요. 숨겨진 비용 없습니다."
+        title="토큰 기반 요금제"
+        subtitle="필요할 때만 사용하고, 사용한 만큼만 지불하세요. 고객의 니즈를 그대로 반영합니다."
       />
 
       {/* Pricing Cards */}

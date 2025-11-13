@@ -15,7 +15,7 @@ export function PricingCard({ name, tokens, price, description, features, highli
       {highlighted && (
         <div className="absolute -top-4 left-1/2 -translate-x-1/2">
           <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold px-4 py-1 rounded-full">
-            인기 요금제
+            인기 상품
           </span>
         </div>
       )}
