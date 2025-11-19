@@ -1,2 +1,8 @@
-"fastapi[standard]"
+fastapi[standard]
 requests
+supabase
+pydantic_settings
+sqlalchemy
+asyncpg
+pgvector
+psycopg2
