@@ -6,3 +6,5 @@ sqlalchemy
 asyncpg
 pgvector
 psycopg2
+fastapi-sso
+pyjwt
