@@ -72,7 +72,7 @@ export default function TypingInput({ onSearch }: TypingInputProps) {
         <Button
           type="submit"
           size="lg"
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8"
+          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:cursor-pointer text-white px-8"
         >
           검색
         </Button>

@@ -36,12 +36,12 @@ export default function Navigation() {
 
           {/* CTA Buttons */}
           <div className="hidden items-center gap-3 md:flex">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="hover:cursor-pointer">
               로그인
             </Button>
             <Button
               size="sm"
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:cursor-pointer"
             >
               무료 시작
             </Button>
@@ -67,10 +67,10 @@ export default function Navigation() {
                 </Link>
               ))}
               <div className="flex gap-2 pt-4">
-                <Button variant="ghost" size="sm" className="flex-1">
+                <Button variant="ghost" size="sm" className="flex-1 hover:cursor-pointer">
                   로그인
                 </Button>
-                <Button size="sm" className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600">
+                <Button size="sm" className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:cursor-pointer">
                   무료 시작
                 </Button>
               </div>
