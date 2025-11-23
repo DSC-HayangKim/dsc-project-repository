@@ -18,7 +18,10 @@ google_sso = GoogleSSO(
 
 @router.get("/google/login")
 async def google_login():
-    """Generate login URL and redirect"""
+    """
+    Google 로그인 URL을 생성하고 리다이렉트합니다.
+    사용자를 Google 로그인 페이지로 이동시킵니다.
+    """
     with google_sso:
         return await google_sso.get_login_redirect()
 
@@ -27,7 +30,19 @@ from app.core.security import create_access_token
 
 @router.get("/google/callback")
 async def google_callback(request: Request):
-    """Process login response from Google and return user info"""
+    """
+    Google 로그인 응답을 처리하고 사용자 정보를 반환합니다.
+    Google에서 받은 코드를 검증하고, 사용자를 생성/조회한 후 JWT 토큰을 발급하여 쿠키에 설정합니다.
+    
+    Args:
+        request (Request): Google로부터의 콜백 요청.
+        
+    Returns:
+        RedirectResponse: 프론트엔드 루트 페이지로 리다이렉트 (쿠키 포함).
+        
+    Raises:
+        HTTPException: 인증 실패 또는 사용자 생성 실패 시 발생.
+    """
     with google_sso:
         try:
             # Verify Google user

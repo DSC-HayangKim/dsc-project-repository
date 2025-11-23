@@ -8,3 +8,7 @@ pgvector
 psycopg2
 fastapi-sso
 pyjwt
+langchain
+langchain-community
+langchain-openai
+langchain-ollama

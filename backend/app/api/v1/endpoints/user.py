@@ -7,6 +7,16 @@ router = APIRouter()
 
 @router.get("/info")
 async def get_user_info(request: Request):
+    """
+    현재 로그인한 사용자의 정보를 조회합니다.
+    쿠키에 있는 access_token을 사용하여 사용자를 식별합니다.
+    
+    Args:
+        request (Request): 요청 객체.
+        
+    Returns:
+        APIResponse: 사용자 정보가 담긴 응답 객체.
+    """
     token = request.cookies.get("access_token")
     if not token:
         return APIResponse.create(status_code=401, message="No access token found")
