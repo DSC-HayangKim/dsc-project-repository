@@ -1,15 +1,26 @@
-import { Check } from "lucide-react"
-import Link from "next/link"
-import { Button } from "./button"
-import type { PricingPlan } from "@/types"
+import { Check } from "lucide-react";
+import Link from "next/link";
+import { Button } from "./button";
+import type { PricingPlan } from "@/types";
 
-interface PricingCardProps extends PricingPlan {}
+interface PricingCardProps extends PricingPlan {
+  period?: string;
+}
 
-export function PricingCard({ name, tokens, price, description, features, highlighted }: PricingCardProps) {
+export function PricingCard({
+  name,
+  tokens,
+  price,
+  description,
+  features,
+  highlighted,
+}: PricingCardProps) {
   return (
     <div
       className={`relative rounded-2xl border transition-all ${
-        highlighted ? "border-blue-500 bg-white/70 shadow-xl scale-105" : "border-border bg-white/50"
+        highlighted
+          ? "border-blue-500 bg-white/70 shadow-xl scale-105"
+          : "border-border bg-white/50"
       } p-8`}
     >
       {highlighted && (
@@ -34,14 +45,21 @@ export function PricingCard({ name, tokens, price, description, features, highli
           ) : (
             <>
               ₩{price}
-              <span className="text-sm text-muted-foreground font-normal">/월</span>
+              {period && (
+                <span className="text-sm text-muted-foreground font-normal">
+                  {period}
+                </span>
+              )}
             </>
           )}
         </div>
       </div>
 
       <Link href="/chat" className="block mb-8">
-        <Button className="w-full" variant={highlighted ? "default" : "outline"}>
+        <Button
+          className="w-full"
+          variant={highlighted ? "default" : "outline"}
+        >
           시작하기
         </Button>
       </Link>
@@ -55,5 +73,5 @@ export function PricingCard({ name, tokens, price, description, features, highli
         ))}
       </ul>
     </div>
-  )
+  );
 }
