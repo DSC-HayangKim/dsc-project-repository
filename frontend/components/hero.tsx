@@ -39,9 +39,9 @@ export default function Hero() {
                 alt="Lightbrain"
                 className="absolute"
                 style={{
-                  top: "-50px",
+                  top: "-150px",
                   left: "100%",
-                  marginLeft: "30px",
+                  marginLeft: "15px",
                   width: "200px",
                   height: "auto",
                 }}

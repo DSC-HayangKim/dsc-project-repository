@@ -14,6 +14,7 @@ export function PricingCard({
   description,
   features,
   highlighted,
+  period,
 }: PricingCardProps) {
   return (
     <div

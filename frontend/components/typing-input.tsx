@@ -1,60 +1,60 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { Button } from "@/components/ui/button"
-import { Search } from "lucide-react"
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { TYPING_HINTS } from "@/lib/constants"
+import type React from "react";
+import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { TYPING_HINTS } from "@/lib/constants";
 
 interface TypingInputProps {
-  onSearch?: (value: string) => void
+  onSearch?: (value: string) => void;
 }
 
 export default function TypingInput({ onSearch }: TypingInputProps) {
-  const router = useRouter()
-  const [inputValue, setInputValue] = useState("")
-  const [displayPlaceholder, setDisplayPlaceholder] = useState("")
-  const [currentHintIndex, setCurrentHintIndex] = useState(0)
-  const [charIndex, setCharIndex] = useState(0)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const router = useRouter();
+  const [inputValue, setInputValue] = useState("");
+  const [displayPlaceholder, setDisplayPlaceholder] = useState("");
+  const [currentHintIndex, setCurrentHintIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    const currentHint = TYPING_HINTS[currentHintIndex]
-    const typingSpeed = isDeleting ? 30 : 50
-    const pauseTime = 3000
+    const currentHint = TYPING_HINTS[currentHintIndex];
+    const typingSpeed = isDeleting ? 30 : 50;
+    const pauseTime = 3000;
 
-    let timer: NodeJS.Timeout
+    let timer: NodeJS.Timeout;
 
     if (!isDeleting && charIndex < currentHint.length) {
       timer = setTimeout(() => {
-        setDisplayPlaceholder(currentHint.slice(0, charIndex + 1))
-        setCharIndex(charIndex + 1)
-      }, typingSpeed)
+        setDisplayPlaceholder(currentHint.slice(0, charIndex + 1));
+        setCharIndex(charIndex + 1);
+      }, typingSpeed);
     } else if (!isDeleting && charIndex === currentHint.length) {
       timer = setTimeout(() => {
-        setIsDeleting(true)
-      }, pauseTime)
+        setIsDeleting(true);
+      }, pauseTime);
     } else if (isDeleting && charIndex > 0) {
       timer = setTimeout(() => {
-        setDisplayPlaceholder(currentHint.slice(0, charIndex - 1))
-        setCharIndex(charIndex - 1)
-      }, typingSpeed)
+        setDisplayPlaceholder(currentHint.slice(0, charIndex - 1));
+        setCharIndex(charIndex - 1);
+      }, typingSpeed);
     } else if (isDeleting && charIndex === 0) {
-      setIsDeleting(false)
-      setCurrentHintIndex((prev) => (prev + 1) % TYPING_HINTS.length)
+      setIsDeleting(false);
+      setCurrentHintIndex((prev) => (prev + 1) % TYPING_HINTS.length);
     }
 
-    return () => clearTimeout(timer)
-  }, [charIndex, isDeleting, currentHintIndex])
+    return () => clearTimeout(timer);
+  }, [charIndex, isDeleting, currentHintIndex]);
 
   const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (inputValue.trim()) {
-      router.push(`/chat?query=${encodeURIComponent(inputValue)}`)
-      setInputValue("")
+      router.push(`/chat?query=${encodeURIComponent(inputValue)}`);
+      setInputValue("");
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSearch} className="mx-auto mb-12 max-w-2xl">
@@ -78,5 +78,5 @@ export default function TypingInput({ onSearch }: TypingInputProps) {
         </Button>
       </div>
     </form>
-  )
+  );
 }
