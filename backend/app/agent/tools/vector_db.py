@@ -5,7 +5,7 @@ from app.core.embedding import get_embedding
 from app.db import supabase
 
 @tool
-def get_patent_by_id(id : str):
+def get_patent_by_id(id : str) -> str:
     """
     ID로 특허 정보를 조회합니다.
 
@@ -16,11 +16,15 @@ def get_patent_by_id(id : str):
         str: 특허 정보.
     """
 
-    response = supabase.table("patents").select("*").eq("id", id).execute()
-    if not response.data:
-        return "검색 결과가 없습니다."
+    try:
+        response = supabase.table("patents").select("*").eq("id", id).execute()
+        if not response.data:
+            return "검색 결과가 없습니다."
 
-    return f"\n제목: {response.data[0]['invention_title']}\n내용: {response.data[0]['abstract_content']}\n"
+        return f"\n제목: {response.data[0]['invention_title']}\n내용: {response.data[0]['abstract_content']}\n"
+
+    except Exception as e:
+        return f"검색 중 오류가 발생했습니다: {str(e)}"
 
 @tool
 def vector_db_search(query: str) -> str:

@@ -34,7 +34,7 @@ async def test_vector_search():
     print("💬 AI 응답:\n")
     
     full_response = ""
-    async for chunk in process_message(query):
+    async for chunk in process_message(query, []):
         print(chunk, end="", flush=True)
         full_response += chunk
     

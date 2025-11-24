@@ -23,9 +23,8 @@ def get_llm(llm_type: str = "openai"):
     """
     if llm_type == "openai":
         # API Key는 환경 변수 OPENAI_API_KEY에서 자동으로 로드됩니다.
-        return ChatOpenAI(model="gpt-4o", temperature=0.5,
+        return ChatOpenAI(model="gpt-4o-mini", temperature=0.5,
             openai_api_key=settings.OPENAI_API_KEY,
-            streaming=True
         )
 
     elif llm_type == "ollama":
@@ -34,7 +33,6 @@ def get_llm(llm_type: str = "openai"):
             model="gpt-oss:20b",
             temperature=0.5,
             base_url="http://localhost:11434",
-            streaming=True
         )
     else:
         raise ValueError(f"지원하지 않는 LLM 타입입니다: {llm_type}")
@@ -51,7 +49,8 @@ def create_agent_executor(llm_type: str = "openai"):
         Agent: 실행 가능한 에이전트 객체.
     """
     llm = get_llm(llm_type)
-    tools = [vector_db_search, get_patent_by_id]
+    # tools = [vector_db_search, get_patent_by_id]
+    tools = []
     
     # System prompt는 문자열이어야 함
     system_prompt = """당신은 **특허 및 기술 문헌 검색에 특화된 최고 수준의 AI 에이전트**입니다. 당신의 주된 임무는 사용자가 요청하는 모든 특허 및 기술 관련 질문에 대해 정확하고 명확한 정보를 제공하는 것입니다.
@@ -71,46 +70,76 @@ def create_agent_executor(llm_type: str = "openai"):
     agent = create_agent(model=llm, tools=tools, system_prompt=system_prompt)
     return agent
 
-async def process_message(message: str, history: list[tuple[str, str]] = None):
+async def process_message(message: str, history: list[tuple[str, str]] = []):
     """
     사용자 메시지를 처리하고 에이전트의 응답을 스트리밍합니다.
     
     Args:
         message (str): 사용자 메시지.
-        history (list[tuple[str, str]], optional): 대화 기록 [(role', 'content'), ...].
+        history (list[tuple[str, str]], optional): 대화 기록 [('role', 'content'), ...].
         
     Yields:
         str: 에이전트 응답의 청크.
     """
-    # 1. History 변환 - 이전 대화 내역
-    chat_history = []
-    if history:
-        for role, content in history:
-            if role == "user":
-                chat_history.append(HumanMessage(content=content))
-            elif role == "assistant":
-                chat_history.append(AIMessage(content=content))
-            elif role == "system":
-                chat_history.append(SystemMessage(content=content))
+    print(f"[DEBUG] process_message 시작 - message: {message[:50] if len(message) > 50 else message}")
+    print(f"[DEBUG] history 길이: {len(history)}")
     
-    # 2. 현재 사용자 메시지 추가
-    chat_history.append(HumanMessage(content=message))
+    try:
+        # 1. History 변환 - 이전 대화 내역
+        chat_history = []
+        if history:
+            for role, content in history:
+                if role == "user":
+                    chat_history.append(HumanMessage(content=content))
+                elif role == "assistant":
+                    chat_history.append(AIMessage(content=content))
+                elif role == "system":
+                    chat_history.append(SystemMessage(content=content))
+        
+        # 2. 현재 사용자 메시지 추가
+        chat_history.append(HumanMessage(content=message))
+        print(f"[DEBUG] chat_history 구성 완료. 총 {len(chat_history)}개 메시지")
 
-    # 3. 에이전트 실행기 생성 (Ollama 사용)
-    agent_executor = create_agent_executor(llm_type="openai")
+        # 3. 에이전트 실행기 생성
+        print(f"[DEBUG] 에이전트 실행기 생성 중...")
+        agent_executor = create_agent_executor(llm_type="openai")
+        print(f"[DEBUG] 에이전트 실행기 생성 완료")
 
-    # 4. 에이전트 실행 및 스트리밍
-    # LangGraph Agent는 "messages" 키로 메시지 리스트를 받음
-    async for event in agent_executor.astream_events(
-        {"messages": chat_history},
-        version="v1"
-    ):
-        kind = event["event"]
-        # 챗 모델에서 생성된 청크를 필터링
-        if kind == "on_chat_model_stream":
-            chunk = event["data"]["chunk"]
-            # 청크에 내용이 있고, 그것이 문자열이면 yield
-            if hasattr(chunk, 'content') and isinstance(chunk.content, str):
-                yield chunk.content
-            elif isinstance(chunk, str):
-                yield chunk
+        # 4. 에이전트 실행 및 스트리밍
+        print(f"[DEBUG] 에이전트 스트리밍 시작...")
+        chunk_count = 0
+        event_types = set()
+        async for event in agent_executor.astream_events(
+            {"messages": chat_history},
+            version="v1"
+        ):
+            kind = event["event"]
+            event_types.add(kind)
+            
+            # 모든 이벤트 타입 출력 (처음 5개만)
+            if len(event_types) <= 5:
+                print(f"[DEBUG] 이벤트 타입 발견: {kind}")
+            
+            # 챗 모델에서 생성된 청크를 필터링
+            if kind == "on_chat_model_stream":
+                chunk = event["data"]["chunk"]
+                # 청크에 내용이 있고, 그것이 문자열이면 yield
+                if hasattr(chunk, 'content') and isinstance(chunk.content, str):
+                    chunk_count += 1
+                    if chunk_count <= 3 or chunk_count % 10 == 0:  # 처음 3개와 이후 10개마다만 출력
+                        print(f"[DEBUG] Chunk {chunk_count}: {chunk.content[:20] if len(chunk.content) >20 else chunk.content}")
+                    yield chunk.content
+                elif isinstance(chunk, str):
+                    chunk_count += 1
+                    if chunk_count <= 3 or chunk_count % 10 == 0:
+                        print(f"[DEBUG] Chunk {chunk_count} (str): {chunk[:20] if len(chunk) > 20 else chunk}")
+                    yield chunk
+        
+        print(f"[DEBUG] 발견된 이벤트 타입들: {event_types}")
+        print(f"[DEBUG] 스트리밍 완료. 총 {chunk_count}개 청크")
+        
+    except Exception as e:
+        print(f"[ERROR] process_message 에러: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        yield "죄송합니다. 에러가 발생했습니다."

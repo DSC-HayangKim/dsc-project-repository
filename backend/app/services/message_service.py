@@ -4,7 +4,16 @@ from app.db.client import supabase
 
 class MessageService:
     @staticmethod
-    def save_message(message_data: MessageCreate):
+    async def save_message(message_data: MessageCreate):
+        """
+        메시지를 데이터베이스에 저장합니다.
+        
+        Args:
+            message_data (MessageCreate): 저장할 메시지 데이터
+            
+        Returns:
+            dict: 저장된 메시지 객체 또는 None
+        """
         data = {
             "thread_id": message_data.thread_id,
             "content": message_data.content,
@@ -15,29 +24,39 @@ class MessageService:
 
     @staticmethod
     async def process_chat(session_id: int, user_message: str):
+        response = await MessageService.get_messages_by_thread_id(session_id)
+        history = [(msg["role"], msg["content"]) for msg in response] if response else []
+        
         # 1. Save User Message
-        MessageService.save_message(MessageCreate(
+        await MessageService.save_message(MessageCreate(
             thread_id=session_id,
             content=user_message,
             role="user"
         ))
 
-        response = await MessageService.get_messages_by_thread_id(session_id)
-
         # 2. Stream Agent Response
-        history = [(msg["role"], msg["content"]) for msg in response] if response else []
-        
         full_response = ""
         async for chunk in process_message(user_message, history):
             full_response += chunk
             yield chunk
 
+        print(f"AI 에게 {full_response}, 응답 받음\n")
+
         # 3. Save Agent Message
-        MessageService.save_message(MessageCreate(
+        await MessageService.save_message(MessageCreate(
             thread_id=session_id,
             content=full_response,
             role="assistant"
         ))
+        
+        # 4. Send end stream event
+        yield {
+            "event": "end_stream",
+            "data": {
+                "message": "Stream completed",
+                "total_chars": len(full_response)
+            }
+        }
 
     @staticmethod
     async def get_messages_by_thread_id(thread_id: int):

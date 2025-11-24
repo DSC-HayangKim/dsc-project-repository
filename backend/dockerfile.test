@@ -1,0 +1,21 @@
+# 변경 전: FROM python:3.10-slim
+# 변경 후: slim을 지웁니다.
+FROM python:3.10
+
+WORKDIR /app
+
+# gcc 등은 이미 들어있으므로, 만약 psycopg2 빌드에 필요한 라이브러리만 없다면 그것만 설치하면 됩니다.
+# (보통 libpq-dev 정도만 필요하거나, 아예 없이도 되는 경우가 많습니다.)
+# 일단 apt-get 라인을 다 지우고 시도해보시거나, libpq-dev만 남기세요.
+RUN apt-get update && \
+    apt-get install -y libpq-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+EXPOSE 8000
+
+CMD ["python", "-m", "tests.manual_agent_test"]
