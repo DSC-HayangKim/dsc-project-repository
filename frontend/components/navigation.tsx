@@ -9,12 +9,8 @@ import { NAVIGATION_LINKS } from "@/lib/constants";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect } from "react";
 
-interface User {
-  id: string;
-  email: string;
-  display_name: string;
-  profile_image: string;
-}
+import { User } from "@/types";
+import { fetchUserInfo } from "@/lib/api";
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,12 +19,9 @@ export default function Navigation() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch("/api/v1/user/info");
-        if (response.ok) {
-          const data = await response.json();
-          if (data.status_code === 200) {
-            setUser(data.data);
-          }
+        const userData = await fetchUserInfo();
+        if (userData) {
+          setUser(userData);
         }
       } catch (error) {
         console.error("Failed to fetch user info", error);

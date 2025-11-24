@@ -1,0 +1,94 @@
+import { Message, Thread, User } from "@/types"
+
+// const API_BASE_URL = "/api/v1"
+const API_BASE_URL = "http://localhost:8000/api/v1"
+
+export async function fetchThreads(): Promise<Thread[]> {
+    const response = await fetch(`${API_BASE_URL}/threads`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+    if (!response.ok) {
+        throw new Error("Failed to fetch threads")
+    }
+    return response.json()
+}
+
+export async function createThread(): Promise<Thread> {
+    const response = await fetch(`${API_BASE_URL}/threads/create`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+    if (!response.ok) {
+        throw new Error("Failed to create thread")
+    }
+    return response.json()
+}
+
+export async function fetchMessages(threadId: number): Promise<Message[]> {
+    const response = await fetch(`${API_BASE_URL}/threads/${threadId}/messages`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+    if (!response.ok) {
+        throw new Error("Failed to fetch messages")
+    }
+    const data = await response.json()
+    return data.map((msg: any) => ({
+        id: msg.id.toString(),
+        role: msg.role,
+        content: msg.content,
+        created_at: msg.created_at,
+    }))
+}
+
+export async function fetchUserInfo(): Promise<User | null> {
+    const response = await fetch(`${API_BASE_URL}/user/info`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+    if (!response.ok) {
+        throw new Error("Failed to fetch user info")
+    }
+    const data = await response.json()
+    if (data.status_code === 200) {
+        return data.data
+    }
+    return null
+}
+
+export async function sendMessage(message: string, sessionId: number): Promise<ReadableStreamDefaultReader<Uint8Array>> {
+    const response = await fetch(`${API_BASE_URL}/chat`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            message,
+            session_id: sessionId,
+        }),
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to send message")
+    }
+
+    if (!response.body) {
+        throw new Error("No response body")
+    }
+
+    return response.body.getReader()
+}

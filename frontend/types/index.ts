@@ -19,4 +19,19 @@ export interface Message {
   role: "user" | "assistant"
   content: string
   isStreaming?: boolean
+  created_at?: string
+}
+
+export interface Thread {
+  id: number
+  title?: string
+  created_at: string
+  user_id: number
+}
+
+export interface User {
+  id: string
+  email: string
+  display_name: string
+  profile_image: string
 }

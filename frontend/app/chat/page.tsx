@@ -1,16 +1,45 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ChatLayout } from "@/components/chat/chat-layout"
-import type { Message } from "@/types"
+import { Message, Thread } from "@/types"
+import { fetchThreads, createThread, fetchMessages, sendMessage } from "@/lib/api"
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([])
+  const [threads, setThreads] = useState<Thread[]>([])
+  const [activeThreadId, setActiveThreadId] = useState<number | null>(null)
   const [inputValue, setInputValue] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [tokenUsage, setTokenUsage] = useState(0)
+
+  useEffect(() => {
+    loadThreads()
+  }, [])
+
+  const loadThreads = async () => {
+    try {
+      const data = await fetchThreads()
+      setThreads(data)
+    } catch (error) {
+      console.error("Failed to load threads:", error)
+    }
+  }
+
+  const handleSelectThread = async (threadId: number) => {
+    setActiveThreadId(threadId)
+    setIsLoading(true)
+    try {
+      const msgs = await fetchMessages(threadId)
+      setMessages(msgs)
+    } catch (error) {
+      console.error("Failed to load messages:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -22,7 +51,6 @@ export default function ChatPage() {
       content: inputValue,
     }
 
-    setMessages((prev) => [...prev, userMessage])
     setInputValue("")
     setIsLoading(true)
 
@@ -36,21 +64,16 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, assistantMessage])
 
     try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          query: inputValue,
-          previousMessages: messages,
-        }),
-      })
+      let currentThreadId = activeThreadId
 
-      if (!response.ok) throw new Error("Failed to send message")
+      if (!currentThreadId) {
+        const newThread = await createThread()
+        currentThreadId = newThread.id
+        setActiveThreadId(currentThreadId)
+        setThreads((prev) => [newThread, ...prev])
+      }
 
-      const reader = response.body?.getReader()
-      if (!reader) throw new Error("No response body")
+      const reader = await sendMessage(inputValue, currentThreadId)
 
       const decoder = new TextDecoder()
 
@@ -64,9 +87,9 @@ export default function ChatPage() {
           prev.map((msg) =>
             msg.id === assistantMessage.id
               ? {
-                  ...msg,
-                  content: msg.content + chunk,
-                }
+                ...msg,
+                content: msg.content + chunk,
+              }
               : msg,
           ),
         )
@@ -81,10 +104,10 @@ export default function ChatPage() {
         prev.map((msg) =>
           msg.id === assistantMessage.id
             ? {
-                ...msg,
-                content: "요청을 처리하는 중 오류가 발생했습니다. 다시 시도해주세요.",
-                isStreaming: false,
-              }
+              ...msg,
+              content: "요청을 처리하는 중 오류가 발생했습니다. 다시 시도해주세요.",
+              isStreaming: false,
+            }
             : msg,
         ),
       )
@@ -95,6 +118,7 @@ export default function ChatPage() {
 
   const handleNewChat = () => {
     setMessages([])
+    setActiveThreadId(null)
     setTokenUsage(0)
   }
 
@@ -111,12 +135,15 @@ export default function ChatPage() {
       isSidebarOpen={isSidebarOpen}
       onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
       messages={messages}
+      threads={threads}
+      activeThreadId={activeThreadId}
       tokenUsage={tokenUsage}
       inputValue={inputValue}
       isLoading={isLoading}
       onInputChange={setInputValue}
       onSubmit={handleSendMessage}
       onNewChat={handleNewChat}
+      onSelectThread={handleSelectThread}
       onCopyMessage={handleCopyMessage}
       onSuggestionClick={handleSuggestionClick}
     />

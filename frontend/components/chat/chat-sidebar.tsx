@@ -4,21 +4,33 @@ import { Plus } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { SIDEBAR_LABELS } from "@/lib/constants"
-import type { Message } from "@/types"
+import { Thread, Message } from "@/types"
+import { format } from "date-fns"
+import { ko } from "date-fns/locale"
 
 interface ChatSidebarProps {
   isOpen: boolean
-  messages: Message[]
+  messages: Message[] // Keep for backward compatibility if needed, or remove if unused
+  threads: Thread[]
+  activeThreadId: number | null
   tokenUsage: number
   onNewChat: () => void
+  onSelectThread: (threadId: number) => void
 }
 
-export function ChatSidebar({ isOpen, messages, tokenUsage, onNewChat }: ChatSidebarProps) {
+export function ChatSidebar({
+  isOpen,
+  messages,
+  threads,
+  activeThreadId,
+  tokenUsage,
+  onNewChat,
+  onSelectThread
+}: ChatSidebarProps) {
   return (
     <div
-      className={`${
-        isOpen ? "w-64" : "w-0"
-      } bg-muted/50 border-r border-border transition-all duration-300 flex flex-col overflow-hidden`}
+      className={`${isOpen ? "w-64" : "w-0"
+        } bg-muted/50 border-r border-border transition-all duration-300 flex flex-col overflow-hidden`}
     >
       {/* Sidebar Header */}
       <div className="p-4 border-b border-border flex items-center justify-between">
@@ -39,14 +51,23 @@ export function ChatSidebar({ isOpen, messages, tokenUsage, onNewChat }: ChatSid
         <div className="text-xs text-muted-foreground px-2 py-2 font-semibold uppercase tracking-wider">
           {SIDEBAR_LABELS.recentChats}
         </div>
-        {messages.length > 0 && (
-          <div className="p-3 rounded-lg bg-background/50 border border-border cursor-pointer hover:bg-background transition-colors">
+        {threads.map((thread) => (
+          <div
+            key={thread.id}
+            onClick={() => onSelectThread(thread.id)}
+            className={`p-3 rounded-lg border cursor-pointer transition-colors ${activeThreadId === thread.id
+              ? "bg-accent border-accent-foreground/20"
+              : "bg-background/50 border-border hover:bg-background"
+              }`}
+          >
             <div className="text-sm text-foreground truncate font-medium">
-              {messages[0]?.content?.substring(0, 30)}...
+              {thread.title || "새로운 대화"}
             </div>
-            <div className="text-xs text-muted-foreground">방금 전</div>
+            <div className="text-xs text-muted-foreground">
+              {format(new Date(thread.created_at), "M월 d일 a h:mm", { locale: ko })}
+            </div>
           </div>
-        )}
+        ))}
       </div>
 
       {/* Token Usage */}
