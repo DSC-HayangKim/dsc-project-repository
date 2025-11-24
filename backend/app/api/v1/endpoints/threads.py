@@ -3,6 +3,8 @@ from fastapi import APIRouter, HTTPException, Depends
 from app.services.thread_service import ThreadService
 from app.schemas import thread as schema_thread
 from app.api.deps import get_current_user_payload
+from app.services.message_service import MessageService
+from app.schemas import message as schema_message
 
 router = APIRouter()
 
@@ -48,3 +50,21 @@ async def create_new_thread(
         raise HTTPException(status_code=500, detail="Failed to create thread")
         
     return thread
+
+@router.get("/{thread_id}/messages", response_model=List[schema_message.Message])
+async def read_messages(
+    thread_id: int,
+    user_id: str = Depends(get_current_user_payload)
+):
+    """
+    특정 스레드의 메시지 목록을 조회합니다.
+    
+    Args:
+        thread_id (int): 조회할 스레드의 ID.
+        user_id (str): 현재 사용자 ID (Dependency injection).
+        
+    Returns:
+        List[schema_message.Message]: 해당 스레드의 메시지 목록.
+    """
+    # TODO: 스레드 소유권 확인 로직 추가 필요
+    return await MessageService.get_messages_by_thread_id(thread_id=thread_id)

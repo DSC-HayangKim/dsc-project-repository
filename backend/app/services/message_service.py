@@ -34,3 +34,23 @@ class MessageService:
             content=full_response,
             role="assistant"
         ))
+
+    @staticmethod
+    async def get_messages_by_thread_id(thread_id: int):
+        """
+        특정 스레드의 메시지 목록을 조회합니다.
+        
+        Args:
+            thread_id (int): 조회할 스레드의 ID
+            
+        Returns:
+            List[dict]: 메시지 목록
+        """
+        response = supabase.table("messages") \
+            .select("*") \
+            .eq("thread_id", thread_id) \
+            .order("created_at", desc=False) \
+            .execute()
+            
+        return response.data
+
