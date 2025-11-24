@@ -23,7 +23,9 @@ def get_llm(llm_type: str = "openai"):
         return ChatOpenAI(model="gpt-4o", temperature=0)
     elif llm_type == "ollama":
         # Ollama 서버 URL은 환경 변수 또는 기본값 사용
-        return ChatOllama(model="llama3", temperature=0)
+        return ChatOllama(model="gpt-oss:20b", temperature=0.5,
+            base_url="http://localhost:11434",
+        )
     else:
         raise ValueError(f"지원하지 않는 LLM 타입입니다: {llm_type}")
 

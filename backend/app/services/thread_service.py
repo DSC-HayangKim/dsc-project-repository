@@ -4,12 +4,13 @@ from app.schemas.thread import Thread
 
 class ThreadService:
     @staticmethod
-    async def get_threads(skip: int = 0, limit: int = 100) -> List[Thread]:
+    async def get_threads(user_id: int, skip: int = 0, limit: int = 100) -> List[Thread]:
         """
-        모든 스레드를 생성일 기준 내림차순으로 조회합니다.
+        특정 사용자의 스레드를 생성일 기준 내림차순으로 조회합니다.
         Supabase Client를 직접 사용하여 데이터를 조회합니다.
         
         Args:
+            user_id (int): 조회할 사용자의 ID.
             skip (int): 건너뛸 항목 수 (기본값: 0).
             limit (int): 반환할 항목 수 (기본값: 100).
             
@@ -19,6 +20,7 @@ class ThreadService:
         # Supabase table select
         response = supabase.table("threads") \
             .select("*") \
+            .eq("user_id", user_id) \
             .order("created_at", desc=True) \
             .range(skip, skip + limit - 1) \
             .execute()
@@ -38,7 +40,7 @@ class ThreadService:
             Thread: 생성된 스레드 객체. 생성 실패 시 None 반환.
         """
         response = supabase.table("threads").insert({"user_id": user_id}).execute()
-        
+
         if not response.data:
             return None
             
