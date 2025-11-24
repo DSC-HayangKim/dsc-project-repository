@@ -36,7 +36,7 @@ def create_agent_executor(llm_type: str = "openai") -> create_agent:
         llm_type (str): 사용할 LLM 타입 (기본값: "openai").
         
     Returns:
-        AgentExecutor: 실행 가능한 에이전트 실행기 객체.
+        create_agent: 실행 가능한 에이전트 실행기 객체.
     """
     llm = get_llm(llm_type)
     tools = [vector_db_search]

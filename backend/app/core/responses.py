@@ -8,10 +8,14 @@ class APIResponse:
         content = {
             "status_code": status_code,
             "response_time": datetime.now().isoformat(),
+            "data" : data,
+            "message" : message,
         }
-        if data is not None:
-            content["data"] = data
-        if message is not None:
-            content["message"] = message
+
+        # if data is not None:
+        #     content["data"] = data
+
+        # if message is not None:
+        #     content["message"] = message
             
         return JSONResponse(status_code=status_code, content=content)
