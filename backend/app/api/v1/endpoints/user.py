@@ -25,12 +25,12 @@ async def get_user_info(request: Request):
     if token.startswith("Bearer "):
         token = token.split(" ")[1]
 
-    user_id = decode_access_token(token)
-    if not user_id:
+    payload = decode_access_token(token)
+    if not payload or not payload.sub:
         return APIResponse.create(status_code=401, message="Invalid access token")
 
     user_service = UserService()
-    user = await user_service.get_user_by_id(user_id)
+    user = await user_service.get_user_by_id(payload.sub)
     
     if not user:
         return APIResponse.create(status_code=404, message="User not found")

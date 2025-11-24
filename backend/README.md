@@ -1,80 +1,80 @@
-# Backend Directory Structure Guide (Korean)
+# 백엔드 API 문서
 
-이 문서는 FastAPI 백엔드 프로젝트의 디렉토리 구조와 각 폴더의 역할을 설명합니다.
+## 인증 (Authentication)
 
-## 📂 디렉토리 구조
+대부분의 API 엔드포인트는 인증이 필요합니다. 인증은 `access_token`이라는 이름의 HTTP-only 쿠키에 저장된 JWT 토큰을 통해 이루어집니다.
 
-```
-backend/
-├── app/
-│   ├── __init__.py
-│   ├── main.py          # 애플리케이션 진입점 (Entry Point)
-│   ├── api/             # API 엔드포인트 (Router)
-│   │   ├── __init__.py
-│   │   └── v1/          # API 버전 관리
-│   │       ├── __init__.py
-│   │       └── endpoints/ # 실제 API 로직 구현
-│   ├── core/            # 핵심 설정 및 공통 기능
-│   │   ├── __init__.py
-│   │   └── config.py    # 환경 변수 및 설정 관리
-│   ├── db/              # 데이터베이스 관련 코드
-│   │   ├── __init__.py
-│   │   └── session.py   # DB 세션 관리
-│   ├── models/          # 데이터베이스 모델 (ORM)
-│   │   └── __init__.py
-│   ├── schemas/         # Pydantic 스키마 (DTO)
-│   │   └── __init__.py
-│   └── crud/            # CRUD 작업 (DB 접근 로직)
-│       └── __init__.py
-├── tests/               # 테스트 코드
-├── dockerfile.prod      # 배포용 Dockerfile
-└── requirements.txt     # 의존성 패키지 목록
-```
+## API 엔드포인트
 
-## 📝 각 폴더별 역할 및 가이드라인
+### 인증 (Auth) - `/api/v1/auth`
 
-### `app/main.py`
-- **역할**: FastAPI 애플리케이션 객체(`app`)를 생성하고 실행하는 파일입니다.
-- **내용**: 미들웨어 설정, 라우터 등록, 예외 처리 핸들러 등록 등을 수행합니다.
+#### `GET /google/login`
 
-### `app/api/`
-- **역할**: 클라이언트의 요청을 받아 처리하고 응답을 반환하는 API 엔드포인트를 정의합니다.
-- **가이드라인**:
-    - `v1/` 폴더를 사용하여 API 버전을 관리합니다.
-    - `endpoints/` 폴더 내에 기능별로 파일(예: `users.py`, `items.py`)을 나누어 라우터를 정의합니다.
-    - 비즈니스 로직은 가능한 `crud/` 또는 서비스 계층으로 분리하여 컨트롤러(라우터)를 가볍게 유지합니다.
+- **설명**: Google OAuth2 로그인 절차를 시작합니다.
+- **응답**: Google 로그인 페이지로 리다이렉트됩니다.
 
-### `app/core/`
-- **역할**: 프로젝트 전반에서 사용되는 핵심 설정과 유틸리티를 포함합니다.
-- **내용**:
-    - `config.py`: `pydantic-settings`를 사용하여 환경 변수를 로드하고 관리합니다.
-    - `security.py`: JWT 토큰 생성, 비밀번호 해싱 등 보안 관련 함수.
+#### `GET /google/callback`
 
-### `app/db/`
-- **역할**: 데이터베이스 연결 및 세션 관리를 담당합니다.
-- **내용**: `session.py` 또는 `base.py`에서 SQLAlchemy 엔진과 세션 메이커를 생성합니다.
+- **설명**: Google OAuth2 콜백 URL입니다. Google에서 받은 인증 코드를 검증하고, 사용자를 생성하거나 조회한 뒤 `access_token` 쿠키를 설정합니다.
+- **응답**: 프론트엔드 루트 페이지(`/`)로 리다이렉트됩니다.
 
-### `app/models/`
-- **역할**: 데이터베이스 테이블과 매핑되는 ORM 모델(SQLAlchemy 모델)을 정의합니다.
-- **가이드라인**: 각 테이블별로 클래스를 정의하고, `Base` 클래스를 상속받습니다.
+### 사용자 (User) - `/api/v1/user`
 
-### `app/schemas/`
-- **역할**: 데이터 유효성 검사 및 직렬화/역직렬화를 위한 Pydantic 모델(DTO)을 정의합니다.
-- **가이드라인**: 요청(Request) 스키마와 응답(Response) 스키마를 명확히 구분하여 작성합니다 (예: `UserCreate`, `UserResponse`).
+#### `GET /info`
 
-### `app/crud/`
-- **역할**: 데이터베이스에 직접 접근하여 데이터를 생성, 조회, 수정, 삭제(CRUD)하는 로직을 담당합니다.
-- **가이드라인**: API 라우터에서 직접 DB 쿼리를 작성하지 않고, CRUD 함수를 호출하여 사용합니다.
+- **설명**: 현재 로그인한 사용자의 정보를 조회합니다.
+- **인증**: 필수 (`access_token` 쿠키 필요).
+- **응답**: 사용자 세부 정보가 담긴 JSON 객체를 반환합니다.
 
-## 🚀 개발 가이드
+### 스레드 (Threads) - `/api/v1/threads`
 
-1. **새로운 기능 추가 시**:
-    - `models/`에 DB 모델 정의 (필요한 경우)
-    - `schemas/`에 입출력 스키마 정의
-    - `crud/`에 DB 조작 로직 구현
-    - `api/v1/endpoints/`에 API 라우터 구현
-    - `main.py` 또는 `api/v1/api.py`에 라우터 등록
+_`get_current_user_payload` 의존성을 통해 보호됩니다._
 
-2. **코딩 스타일**:
-    - Type Hinting을 적극적으로 사용합니다.
-    - 비동기 처리(`async def`)를 기본으로 사용합니다.
+#### `GET /`
+
+- **설명**: 최근 스레드 목록을 조회합니다.
+- **인증**: 필수 (`access_token` 쿠키 필요).
+- **쿼리 파라미터**:
+  - `skip` (int, 기본값: 0): 건너뛸 레코드 수.
+  - `limit` (int, 기본값: 100): 반환할 최대 레코드 수.
+- **응답**: 스레드 객체들의 리스트를 반환합니다.
+
+#### `POST /create`
+
+- **설명**: 현재 사용자를 위한 새로운 스레드를 생성합니다.
+- **인증**: 필수 (`access_token` 쿠키 필요).
+- **응답**: 생성된 스레드 객체를 반환합니다.
+
+### 채팅 (Chat) - `/api/v1/chat`
+
+_`get_current_user_payload` 의존성을 통해 보호됩니다._
+
+#### `POST /`
+
+- **설명**: 에이전트에게 메시지를 보내고 스트리밍 응답을 받습니다. 사용자 메시지와 에이전트 응답은 데이터베이스에 저장됩니다.
+- **인증**: 필수 (`access_token` 쿠키 필요).
+- **요청 본문 (Body)** (`application/json`):
+  ```json
+  {
+    "message": "사용자가 보낼 메시지 내용",
+    "session_id": 123 // 스레드 ID (Integer)
+  }
+  ```
+- **응답**: 텍스트 스트리밍 (`text/plain`). 에이전트의 응답이 실시간으로 전송됩니다.
+
+### 에이전트 (Agent) - `/api/v1/agent`
+
+_`get_current_user_payload` 의존성을 통해 보호됩니다._
+
+#### `POST /chat`
+
+- **설명**: 에이전트와 일반적인(비스트리밍) 대화를 나눕니다.
+- **인증**: 필수 (`access_token` 쿠키 필요).
+- **요청 본문 (Body)** (`application/json`):
+  ```json
+  {
+    "query": "질문 내용",
+    "llm_type": "openai" // 또는 "ollama"
+  }
+  ```
+- **응답**: 에이전트의 응답 텍스트가 담긴 JSON 객체를 반환합니다.

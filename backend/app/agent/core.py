@@ -1,7 +1,7 @@
 import os
 from langchain_openai import ChatOpenAI
 from langchain_ollama import ChatOllama
-from langchain.agents import create_tool_calling_agent, AgentExecutor
+from langchain.agents import create_agent
 from langchain_core.prompts import ChatPromptTemplate
 from app.agent.tools.vector_db import vector_db_search
 
@@ -27,7 +27,7 @@ def get_llm(llm_type: str = "openai"):
     else:
         raise ValueError(f"지원하지 않는 LLM 타입입니다: {llm_type}")
 
-def create_agent_executor(llm_type: str = "openai") -> AgentExecutor:
+def create_agent_executor(llm_type: str = "openai") -> create_agent:
     """
     주어진 LLM 타입으로 에이전트 실행기(AgentExecutor)를 생성합니다.
     LLM과 도구(Tools)를 바인딩하고 프롬프트를 설정하여 에이전트를 초기화합니다.
@@ -50,4 +50,24 @@ def create_agent_executor(llm_type: str = "openai") -> AgentExecutor:
     
     agent = create_tool_calling_agent(llm, tools, prompt)
     
-    return AgentExecutor(agent=agent, tools=tools, verbose=True)
+    return create_agent(agent=agent, tools=tools, verbose=True)
+
+async def process_message(message: str, history: list = None):
+    """
+    사용자 메시지를 처리하고 에이전트의 응답을 스트리밍합니다.
+    
+    Args:
+        message (str): 사용자 메시지.
+        history (list, optional): 대화 기록.
+        
+    Yields:
+        str: 에이전트 응답의 청크.
+    """
+    # TODO: 실제 에이전트 로직 연결
+    # 현재는 더미 응답을 스트리밍합니다.
+    import asyncio
+    
+    dummy_response = f"에이전트가 '{message}'에 대해 생각 중입니다..."
+    for char in dummy_response:
+        yield char
+        await asyncio.sleep(0.05)

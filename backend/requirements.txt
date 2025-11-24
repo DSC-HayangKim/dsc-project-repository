@@ -9,6 +9,8 @@ psycopg2
 fastapi-sso
 pyjwt
 langchain
+langchain-core
 langchain-community
 langchain-openai
 langchain-ollama
+openai

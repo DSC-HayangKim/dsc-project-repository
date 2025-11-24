@@ -24,12 +24,17 @@ async def get_current_user_payload(request: Request) -> str:
     # Remove "Bearer " prefix if present
     if token.startswith("Bearer "):
         token = token.split(" ")[1]
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid access token",
+        )
 
-    user_id = decode_access_token(token)
-    if not user_id:
+    payload = decode_access_token(token)
+    if not payload or not payload.sub:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid access token",
         )
         
-    return str(user_id)
+    return str(payload.sub)

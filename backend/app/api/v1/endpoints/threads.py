@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from typing import List
-from app.crud import thread as crud_thread
+from app.services.thread_service import ThreadService
 from app.schemas import thread as schema_thread
 from fastapi import APIRouter, Request, HTTPException
 from app.core.security import decode_access_token
@@ -23,7 +23,7 @@ async def read_threads(
     Returns:
         List[schema_thread.Thread]: 조회된 스레드 목록.
     """
-    return await crud_thread.get_threads(skip=skip, limit=limit)
+    return await ThreadService.get_threads(skip=skip, limit=limit)
 
 @router.post("/create", response_model=schema_thread.Thread)
 async def create_new_thread(request: Request):
@@ -48,11 +48,11 @@ async def create_new_thread(request: Request):
     if token.startswith("Bearer "):
         token = token.split(" ")[1]
 
-    user_id = decode_access_token(token)
-    if not user_id:
+    payload = decode_access_token(token)
+    if not payload or not payload.sub:
         raise HTTPException(status_code=401, detail="Invalid access token")
 
-    thread = await crud_thread.create_thread(user_id=int(user_id))
+    thread = await ThreadService.create_thread(user_id=int(payload.sub))
     if not thread:
         raise HTTPException(status_code=500, detail="Failed to create thread")
         
