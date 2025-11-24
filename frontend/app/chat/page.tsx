@@ -61,7 +61,7 @@ export default function ChatPage() {
       isStreaming: true,
     }
 
-    setMessages((prev) => [...prev, assistantMessage])
+    setMessages((prev) => [...prev, userMessage, assistantMessage])
 
     try {
       let currentThreadId = activeThreadId

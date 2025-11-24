@@ -1,7 +1,7 @@
 import { Message, Thread, User } from "@/types"
 
-// const API_BASE_URL = "/api/v1"
-const API_BASE_URL = "http://localhost:8000/api/v1"
+export const API_BASE_URL = "/api/v1"
+// export const API_BASE_URL = "http://localhost:8000/api/v1"
 
 export async function fetchThreads(): Promise<Thread[]> {
     const response = await fetch(`${API_BASE_URL}/threads`, {
@@ -75,6 +75,7 @@ export async function sendMessage(message: string, sessionId: number): Promise<R
         credentials: "include",
         headers: {
             "Content-Type": "application/json",
+            "Accept": "text/event-stream",
         },
         body: JSON.stringify({
             message,
