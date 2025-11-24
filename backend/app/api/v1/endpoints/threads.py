@@ -66,5 +66,12 @@ async def read_messages(
     Returns:
         List[schema_message.Message]: 해당 스레드의 메시지 목록.
     """
-    # TODO: 스레드 소유권 확인 로직 추가 필요
+
+    thread = await ThreadService.get_thread_by_id(thread_id=thread_id)
+    if not thread:
+        raise HTTPException(status_code=404, detail="Thread not found")
+    
+    if thread.user_id != int(user_id):
+        raise HTTPException(status_code=403, detail="Unauthorized")
+
     return await MessageService.get_messages_by_thread_id(thread_id=thread_id)

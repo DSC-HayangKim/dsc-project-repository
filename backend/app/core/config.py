@@ -9,8 +9,10 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str
     GOOGLE_CLIENT_SECRET: str
 
-    JWT_SECRET_KEY: str # TODO: Change in production
+    JWT_SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int
+
+    OPENAI_API_KEY: str
 
     model_config = SettingsConfigDict(env_file=".env.prod", env_ignore_empty=True)

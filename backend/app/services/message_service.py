@@ -22,9 +22,13 @@ class MessageService:
             role="user"
         ))
 
+        response = await MessageService.get_messages_by_thread_id(session_id)
+
         # 2. Stream Agent Response
+        history = [(msg["role"], msg["content"]) for msg in response] if response else []
+        
         full_response = ""
-        async for chunk in process_message(user_message):
+        async for chunk in process_message(user_message, history):
             full_response += chunk
             yield chunk
 

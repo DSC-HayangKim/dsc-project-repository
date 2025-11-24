@@ -16,3 +16,5 @@ langchain-ollama
 openai
 pytest
 httpx
+sentence-transformers
+pytest-asyncio

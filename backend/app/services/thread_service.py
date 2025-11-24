@@ -45,3 +45,20 @@ class ThreadService:
             return None
             
         return Thread(**response.data[0])
+    
+    async def get_thread_by_id(thread_id: int) -> Thread:
+        """
+        특정 ID의 스레드를 조회합니다.
+        
+        Args:
+            thread_id (int): 조회할 스레드의 ID.
+            
+        Returns:
+            Thread: 조회된 스레드 객체. 조회 실패 시 None 반환.
+        """
+        response = supabase.table("threads").select("*").eq("id", thread_id).execute()
+
+        if not response.data:
+            return None
+            
+        return Thread(**response.data[0])
