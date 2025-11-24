@@ -20,7 +20,7 @@ def create_access_token(subject: Union[str, Any], expires_delta: timedelta = Non
         expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     
     to_encode = {"exp": expire, "sub": str(subject)}
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
 from pydantic import BaseModel
@@ -39,7 +39,7 @@ def decode_access_token(token: str) -> Payload | None:
         Payload | None: 토큰의 주체 (sub claim)가 포함된 Payload 객체. 유효하지 않은 경우 None 반환.
     """
     try:
-        decoded_jwt = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        decoded_jwt = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.ALGORITHM])
         return Payload(sub=decoded_jwt.get("sub"))
     except (jwt.PyJWTError, ValueError):
         return None

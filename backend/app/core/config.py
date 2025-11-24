@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str
     GOOGLE_CLIENT_SECRET: str
 
-    SECRET_KEY: str = "your-secret-key" # TODO: Change in production
+    JWT_SECRET_KEY: str # TODO: Change in production
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int
 
