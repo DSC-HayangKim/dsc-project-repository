@@ -7,7 +7,8 @@ router = APIRouter()
 from app.core import settings
 
 # Ensure this matches the redirect URI configured in Google Cloud Console
-GOOGLE_REDIRECT_URI = "http://localhost:80/api/v1/auth/google/callback"
+LISTENING_PORT = 20080
+GOOGLE_REDIRECT_URI = f"http://localhost:{LISTENING_PORT}/api/v1/auth/google/callback"
 
 google_sso = GoogleSSO(
     client_id=settings.GOOGLE_CLIENT_ID,
