@@ -14,7 +14,11 @@ export async function fetchThreads(): Promise<Thread[]> {
   if (!response.ok) {
     throw new Error("Failed to fetch threads");
   }
-  return response.json();
+  const data = await response.json();
+  return data.map((thread: Thread) => ({
+    ...thread,
+    title: thread.title || "새로운 대화",
+  }));
 }
 
 export async function createThread(): Promise<Thread> {
@@ -43,6 +47,12 @@ export async function fetchMessages(threadId: number): Promise<Message[]> {
     throw new Error("Failed to fetch messages");
   }
   const data = await response.json();
+
+  if (!Array.isArray(data)) {
+    console.error("Invalid messages format:", data);
+    return [];
+  }
+
   return data.map((msg: any) => ({
     id: msg.id.toString(),
     role: msg.role,
