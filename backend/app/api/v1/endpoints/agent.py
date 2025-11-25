@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from app.agent.schemas import AgentRequest, AgentResponse
-from app.agent.core import create_agent_executor
+from app.agent.core import create_agent_executor, process_message_non_streaming
 
 router = APIRouter()
 

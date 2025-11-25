@@ -62,3 +62,18 @@ class ThreadService:
             return None
             
         return Thread(**response.data[0])
+    
+    @staticmethod
+    async def check_user_thread(user_id: int, thread_id: int) -> bool:
+        """
+        특정 사용자가 특정 스레드에 대한 접근 권한이 있는지 확인합니다.
+        
+        Args:
+            user_id (int): 사용자의 ID.
+            thread_id (int): 스레드의 ID.
+            
+        Returns:
+            bool: 사용자가 스레드에 대한 접근 권한이 있는지 여부.
+        """
+        response = supabase.table("threads").select("*").eq("user_id", user_id).eq("id", thread_id).execute()
+        return bool(response.data)

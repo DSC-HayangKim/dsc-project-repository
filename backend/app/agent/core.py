@@ -143,3 +143,47 @@ async def process_message(message: str, history: list[tuple[str, str]] = []):
         import traceback
         traceback.print_exc()
         yield "죄송합니다. 에러가 발생했습니다."
+
+async def process_message_non_streaming(message: str, history: list[tuple[str, str]] = []):
+    """
+    사용자 메시지를 처리하고 에이전트의 응답을 한 번에 반환합니다 (스트리밍 아님).
+    
+    Args:
+        message (str): 사용자 메시지.
+        history (list[tuple[str, str]], optional): 대화 기록 [('role', 'content'), ...].
+        
+    Returns:
+        str: 에이전트의 최종 응답.
+    """
+    try:
+        # 1. History 변환 - 이전 대화 내역
+        chat_history = []
+        if history:
+            for role, content in history:
+                if role == "user":
+                    chat_history.append(HumanMessage(content=content))
+                elif role == "assistant":
+                    chat_history.append(AIMessage(content=content))
+                elif role == "system":
+                    chat_history.append(SystemMessage(content=content))
+        
+        # 2. 현재 사용자 메시지 추가
+        chat_history.append(HumanMessage(content=message))
+
+        # 3. 에이전트 실행기 생성
+        agent_executor = create_agent_executor(llm_type="openai")
+
+        # 4. 에이전트 실행 및 최종 응답 반환
+        result = await agent_executor.ainvoke(
+            {"messages": chat_history}
+        )
+        
+        # 결과에서 최종 응답 추출
+        final_response = result.get("output", "응답을 생성할 수 없습니다.")
+        return final_response
+        
+    except Exception as e:
+        print(f"[ERROR] process_message_non_streaming 에러: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return "죄송합니다. 에러가 발생했습니다."
