@@ -96,16 +96,21 @@ export default function ChatPage() {
             if (data === "[DONE]") continue;
 
             try {
-              // Check if it's a JSON object (for end_stream event)
+              // Check if it's a JSON object
               if (data.trim().startsWith("{")) {
                 const parsed = JSON.parse(data);
+
                 if (parsed.event === "end_stream") {
                   continue;
                 }
-              }
 
-              // It's a text chunk
-              assistantResponse += data;
+                if (parsed.content) {
+                  assistantResponse += parsed.content;
+                }
+              } else {
+                // Legacy text format fallback
+                assistantResponse += data;
+              }
 
               setMessages((prev) =>
                 prev.map((msg) =>
@@ -118,7 +123,8 @@ export default function ChatPage() {
                 )
               );
             } catch (e) {
-              // If not JSON, treat as text (legacy support or simple string)
+              console.error("Error parsing stream data:", e);
+              // Fallback: treat as raw text if parsing fails
               assistantResponse += data;
               setMessages((prev) =>
                 prev.map((msg) =>

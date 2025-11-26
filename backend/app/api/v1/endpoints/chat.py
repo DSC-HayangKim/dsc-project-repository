@@ -17,7 +17,8 @@ async def sse_generator(message_stream):
                 return
         else:
             # 일반 텍스트 청크
-            yield f"data: {chunk}\n\n"
+            payload = {"content": chunk}
+            yield f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
 
 @router.post("/")
 async def chat(
