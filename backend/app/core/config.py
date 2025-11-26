@@ -14,5 +14,6 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int
 
     OPENAI_API_KEY: str
+    DEV_MODE: str
 
     model_config = SettingsConfigDict(env_file=".env.prod", env_ignore_empty=True)

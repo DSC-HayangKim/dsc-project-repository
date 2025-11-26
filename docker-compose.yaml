@@ -3,8 +3,11 @@ services:
     build:
       context: ./backend
       dockerfile: dockerfile.prod
-    # ports:
-    #   - "8000:8000"
+    ports:
+      - "8000:8000"
+    environment:
+      - DEV_MODE=development
+      # - DEV_MODE=production
     env_file:
       - ./backend/.env.prod
 

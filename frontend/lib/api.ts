@@ -1,6 +1,7 @@
 import { Message, Thread, User } from "@/types";
+import { ENV } from "./env";
 
-export const API_BASE_URL = "/api/v1";
+export const API_BASE_URL = ENV.IS_DEVELOPMENT ? "http://localhost:8000/api/v1" : "/api/v1";
 // export const API_BASE_URL = "http://localhost:8000/api/v1"
 
 export async function fetchThreads(): Promise<Thread[]> {
@@ -14,8 +15,6 @@ export async function fetchThreads(): Promise<Thread[]> {
   if (!response.ok) {
     throw new Error("Failed to fetch threads");
   }
-
-  console.log(response.json());
   const data = await response.json();
 
   if (!Array.isArray(data)) {

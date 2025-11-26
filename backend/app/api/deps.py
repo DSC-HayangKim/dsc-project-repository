@@ -1,5 +1,6 @@
 from fastapi import Request, HTTPException, status
 from app.core.security import decode_access_token
+from app.core import settings
 
 async def get_current_user_payload(request: Request) -> str:
     """
@@ -14,6 +15,9 @@ async def get_current_user_payload(request: Request) -> str:
     Raises:
         HTTPException: 토큰이 없거나 유효하지 않은 경우 발생합니다.
     """
+    if (settings.DEV_MODE == "development"):
+        return "2"
+
     token = request.cookies.get("access_token")
     if not token:
         raise HTTPException(

@@ -38,6 +38,9 @@ def decode_access_token(token: str) -> Payload | None:
     Returns:
         Payload | None: 토큰의 주체 (sub claim)가 포함된 Payload 객체. 유효하지 않은 경우 None 반환.
     """
+    if (settings.DEV_MODE == "development"):
+        return Payload(sub="2")
+
     try:
         decoded_jwt = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.ALGORITHM])
         return Payload(sub=decoded_jwt.get("sub"))

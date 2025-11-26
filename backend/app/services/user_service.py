@@ -26,7 +26,7 @@ class UserService:
         
         return None
 
-    async def get_user_by_id(self, user_id: str):
+    async def get_user_by_id(self, user_id: int):
         response = self.supabase.table("users").select("*").eq("id", user_id).execute()
         
         if response.data:

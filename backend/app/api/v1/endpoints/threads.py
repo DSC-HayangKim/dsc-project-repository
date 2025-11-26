@@ -45,6 +45,8 @@ async def create_new_thread(
     Raises:
         HTTPException: 인증 실패 또는 생성 실패 시 발생.
     """
+    print(user_id, "userid는 이렇습니다.")
+
     thread = await ThreadService.create_thread(user_id=int(user_id))
     if not thread:
         raise HTTPException(status_code=500, detail="Failed to create thread")

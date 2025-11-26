@@ -79,3 +79,19 @@ class ThreadService:
         """
         response = supabase.table("threads").select("*").eq("user_id", user_id).eq("id", thread_id).execute()
         return bool(response.data)
+
+    @staticmethod
+    async def rename_title(thread_id: int, new_title: str) -> bool:
+        """
+        특정 ID의 스레드의 제목을 변경합니다.
+        
+        Args:
+            thread_id (int): 변경할 스레드의 ID.
+            new_title (str): 새로운 제목.
+            
+        Returns:
+            bool: 제목 변경 성공 여부.
+        """
+        response = supabase.table("threads").update({"title": new_title}).eq("id", thread_id).execute()
+        return bool(response.data)
+    

@@ -4,7 +4,7 @@ from langchain_ollama import ChatOllama
 from langchain.agents import create_agent
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
-from app.agent.tools.vector_db import vector_db_search, get_patent_by_id
+from app.agent.tools.vector_db import vector_db_search, get_patent_by_id, get_contact_info_by_applicant
 from app.core import settings
 
 
@@ -49,7 +49,7 @@ def create_agent_executor(llm_type: str):
         Agent: 실행 가능한 에이전트 객체.
     """
     llm = get_llm(llm_type)
-    tools = [vector_db_search, get_patent_by_id]
+    tools = [vector_db_search, get_patent_by_id, get_contact_info_by_applicant]
     
     # System prompt는 문자열이어야 함
     system_prompt = """당신은 **특허 및 기술 문헌 검색에 특화된 최고 수준의 AI 에이전트**입니다. 당신의 주된 임무는 사용자가 요청하는 모든 특허 및 기술 관련 질문에 대해 정확하고 명확한 정보를 제공하는 것입니다.
@@ -58,16 +58,42 @@ def create_agent_executor(llm_type: str):
 1.  **전문 지식 활용:** 사용자의 질의를 분석하고, 해당 질문이 사실 정보나 특허 검색을 필요로 할 경우 **반드시** 도구를 사용하십시오.
 2.  **도구 사용 최적화:** 당신이 접근할 수 있는 유일한 외부 지식 소스는 **'vector_db_search'** 도구입니다. 이 도구는 **임베딩 기반 검색**을 수행하며, 당신은 이 도구의 검색 결과를 **절대적으로 신뢰**하고 최종 답변의 근거로 활용해야 합니다.
 3.  **최종 보고서 제공:** 검색된 특허 정보나 문헌을 바탕으로, 사용자에게 **특허의 주요 내용, 기술 개요, 또는 핵심 정보를 요약하고 정리**하여 명확하게 전달해야 합니다.
-4.  **정보 부재 시 대응:** 도구 검색 결과가 만족스럽지 않거나 관련 정보를 찾지 못했다면, 정보를 찾을 수 없음을 정중하게 밝히고 사용자가 더 구체적인 검색어를 제시하도록 유도하십시오.
+4.  **정보 제공 원칙:** 사용자가 필요로 하지 않을 것 같은 불필요한 정보는 철저히 배제하고, 핵심적이고 요청된 정보만을 제공합니다. 만약 도구 검색 결과가 만족스럽지 않거나 관련 정보를 찾지 못했다면, 정보를 찾을 수 없음을 정중하게 밝히고 사용자가 더 구체적인 검색어를 제시하거나 추가적인 검색을 통해 정보를 얻을 수 있도록 유도하십시오.
 
 ## 행동 규칙
 * **도구 우선:** 질문에 답하기 전에 항상 'vector_db_search' 도구의 사용을 우선적으로 고려하고, 도구를 사용한 후에만 답변을 생성하십시오.
 * **전문성 유지:** 답변은 한국어로 작성하며, 명확하고 전문적이며 자신감 있는 어조를 유지하십시오.
-* **간결한 요약:** 특허 내용은 불필요한 장황한 설명 없이, 사용자가 이해하기 쉽도록 핵심 기술과 목적을 중심으로 요약하십시오."""
+* **간결한 요약:** 특허 내용은 불필요한 장황한 설명 없이, 사용자가 이해하기 쉽도록 핵심 기술과 목적을 중심으로 요약하십시오.
+* **연락처 정보:** 특허권자에 대한 컨택정보를 무조건 명시하여 제공하세요. 'get_contact_info_by_applicant' 도구를 사용하여 정확한 정보를 제공하십시오.
+"""
+
     
     # create_agent는 model, tools, system_prompt를 받음
     agent = create_agent(model=llm, tools=tools, system_prompt=system_prompt)
     return agent
+
+async def generate_thread_title(message: str) -> str:
+    """
+    사용자 메시지를 기반으로 스레드 제목을 생성합니다.
+    
+    Args:
+        message (str): 사용자 메시지.
+        
+    Returns:
+        str: 생성된 제목 (24자 이내).
+    """
+    try:
+        llm = get_llm("openai")
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", "당신은 특허를 제공하는 전문적인 AI Assitance입니다. 사용자의 질문을 보고 24자 이내의 짧고 명확한 대화 제목을 한국어로 생성해줘. 따옴표 없이 제목만 출력해."),
+            ("user", "{message}")
+        ])
+        chain = prompt | llm
+        result = await chain.ainvoke({"message": message})
+        return result.content.strip()
+    except Exception as e:
+        print(f"[ERROR] generate_thread_title 에러: {str(e)}")
+        return "새로운 대화"
 
 async def process_message(message: str, history: list[tuple[str, str]] = []):
     """

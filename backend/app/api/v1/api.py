@@ -7,7 +7,7 @@ api_router = APIRouter()
 
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 
-api_router.include_router(user.router, prefix="/user", tags=["user"])
+api_router.include_router(user.router, prefix="/user", tags=["user"], dependencies=[Depends(get_current_user_payload)])
 
 api_router.include_router(agent.router, prefix="/agent", tags=["agent"],
         dependencies=[Depends(get_current_user_payload)])

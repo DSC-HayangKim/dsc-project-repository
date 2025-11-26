@@ -53,7 +53,7 @@ def vector_db_search(query: str) -> str:
             "match_count": 10
         }
         
-        response = supabase.rpc("match_patents", params).execute()
+        response = supabase.rpc("match_patents_all_info", params).execute()
         
         if not response.data:
             return "검색 결과가 없습니다."
@@ -64,10 +64,40 @@ def vector_db_search(query: str) -> str:
             title = doc.get("invention_title", "제목 없음")
             summary = doc.get("abstract_content")
             similarity = doc.get("similarity", 0)
-            
-            results.append(f"[제목: {title}]\n(유사도: {similarity:.4f})\n내용: {summary[:300]}...")
+            applicant = doc.get("applicant_name", "출원인 불명")
+            app_number = doc.get("application_number", "출원번호 불명")
+            applicant_date = doc.get("application_date", "출원시기 불명")
+
+            results.append(f"[제목: {title}]\n(유사도: {similarity:.4f})\n내용: {summary[:300]}...\n출원인: {applicant}\n출원번호: {app_number}\n출원시기: {applicant_date}")
             
         return "\n\n".join(results)
         
     except Exception as e:
         return f"vector_db_search Error: {str(e)}"
+
+
+@tool
+def get_contact_info_by_applicant(applicant: str):
+    """
+    신청인 이름으로 연락 방법을 조회합니다.
+
+    Args:
+        applicant (str): 연락처를 조회할 신청인 이름.
+
+    Returns:
+        str: 신청인의 연락 방법(평문)
+    """
+
+    print(f"[DEBUG] get_contact_info_by_applicant Agent Used by query : {applicant}")
+    try:
+        response = supabase.table("contacts").select("applicant, contact").ilike("applicant", f"%{applicant}%").execute()
+        if not response.data:
+            return "검색 결과가 없습니다."
+
+        contact_info = []
+        for record in response.data:
+            contact_info.append(f"신청인: {record['applicant']}, 연락처: {record['contact']}")
+        return "\n".join(contact_info)
+
+    except Exception as e:
+        return f"get_contact_info_by_applicant Error: {str(e)}"

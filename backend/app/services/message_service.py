@@ -1,6 +1,7 @@
 from app.schemas.message import MessageCreate
-from app.agent.core import process_message, process_message_non_streaming
+from app.agent.core import process_message, process_message_non_streaming, generate_thread_title
 from app.db.client import supabase
+from app.services.thread_service import ThreadService
 
 class MessageService:
     @staticmethod
@@ -19,9 +20,21 @@ class MessageService:
             "content": message_data.content,
             "role": message_data.role
         }
+
+        # 스레드에 메시지가 없는 경우 (첫 메시지), 제목 생성 및 업데이트
+        # 주의: user 메시지일 때만 제목을 생성하도록 조건 추가 가능
+        if message_data.role == "user" and not await MessageService.is_exists_any_message(message_data.thread_id):
+            try:
+                # 제목 생성
+                new_title = await generate_thread_title(message_data.content)
+                # 제목 업데이트
+                await ThreadService.rename_title(message_data.thread_id, new_title)
+            except Exception as e:
+                print(f"[ERROR] Failed to generate/update thread title: {e}")
+
         response = supabase.table("messages").insert(data).execute()
         return response.data[0] if response.data else None
-
+    
     @staticmethod
     async def process_chat(session_id: int, user_message: str):
         response = await MessageService.get_messages_by_thread_id(session_id)
@@ -55,6 +68,7 @@ class MessageService:
                 "total_chars": len(full_response)
             }
         }
+
     @staticmethod
     async def process_chat_nonstreaming(session_id: int, user_message: str):
         response = await MessageService.get_messages_by_thread_id(session_id)
@@ -81,8 +95,6 @@ class MessageService:
 
         return agent_response
     
-
-
     @staticmethod
     async def get_messages_by_thread_id(thread_id: int):
         """
@@ -101,4 +113,17 @@ class MessageService:
             .execute()
             
         return response.data
-
+    
+    @staticmethod
+    async def is_exists_any_message(thread_id: int) -> bool:
+        """
+        특정 ID의 스레드에 메시지가 있는지 확인합니다.
+        
+        Args:
+            thread_id (int): 조회할 스레드의 ID.
+            
+        Returns:
+            bool: 스레드에 메시지가 있는지 여부.
+        """
+        response = supabase.table("messages").select("*").eq("thread_id", thread_id).execute()
+        return bool(response.data)
