@@ -9,7 +9,7 @@ from app.schemas import message as schema_message
 router = APIRouter()
 
 # 최근 스레드 조회 API
-@router.get("/", response_model=List[schema_thread.Thread])
+@router.get("/")
 async def read_threads(
     skip: int = 0,
     limit: int = 20,
