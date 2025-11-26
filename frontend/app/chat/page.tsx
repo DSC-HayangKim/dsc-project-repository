@@ -50,23 +50,24 @@ export default function ChatPage() {
     e.preventDefault();
     if (!inputValue.trim() || isLoading) return;
 
+    const currentInput = inputValue;
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
-      content: inputValue,
+      content: currentInput,
     };
 
-    setInputValue("");
-    setIsLoading(true);
-
+    const assistantMessageId = (Date.now() + 1).toString();
     const assistantMessage: Message = {
-      id: (Date.now() + 1).toString(),
+      id: assistantMessageId,
       role: "assistant",
       content: "",
       isStreaming: true,
     };
 
+    setInputValue("");
     setMessages((prev) => [...prev, userMessage, assistantMessage]);
+    setIsLoading(true);
 
     try {
       let currentThreadId = activeThreadId;
@@ -79,34 +80,34 @@ export default function ChatPage() {
       }
 
       const response = await sendMessageNonStreaming(
-        inputValue,
+        currentInput,
         currentThreadId
       );
 
       setMessages((prev) =>
         prev.map((msg) =>
-          msg.id === assistantMessage.id
+          msg.id === assistantMessageId
             ? {
-                ...msg,
-                content: response,
-                isStreaming: false,
-              }
+              ...msg,
+              content: response,
+              isStreaming: false,
+            }
             : msg
         )
       );
 
-      setTokenUsage((prev) => prev + Math.ceil(inputValue.length / 4) + 100);
+      setTokenUsage((prev) => prev + Math.ceil(currentInput.length / 4) + 100);
     } catch (error) {
       console.error("[v0] Error sending message:", error);
       setMessages((prev) =>
         prev.map((msg) =>
-          msg.id === assistantMessage.id
+          msg.id === assistantMessageId
             ? {
-                ...msg,
-                content:
-                  "요청을 처리하는 중 오류가 발생했습니다. 다시 시도해주세요.",
-                isStreaming: false,
-              }
+              ...msg,
+              content:
+                "요청을 처리하는 중 오류가 발생했습니다. 다시 시도해주세요.",
+              isStreaming: false,
+            }
             : msg
         )
       );

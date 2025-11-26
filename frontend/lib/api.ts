@@ -15,6 +15,12 @@ export async function fetchThreads(): Promise<Thread[]> {
     throw new Error("Failed to fetch threads");
   }
   const data = await response.json();
+
+  if (!Array.isArray(data)) {
+    console.error("Invalid threads format:", data);
+    return [];
+  }
+
   return data.map((thread: Thread) => ({
     ...thread,
     title: thread.title || "새로운 대화",
@@ -54,7 +60,7 @@ export async function fetchMessages(threadId: number): Promise<Message[]> {
   }
 
   return data.map((msg: any) => ({
-    id: msg.id.toString(),
+    id: msg.id ? msg.id.toString() : Date.now().toString(), // ID가 없으면 임시 ID 생성
     role: msg.role,
     content: msg.content,
     created_at: msg.created_at,

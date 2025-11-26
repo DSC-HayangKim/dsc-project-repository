@@ -30,7 +30,7 @@ export function MessagesList({ messages, onCopyMessage, onSuggestionClick }: Mes
         ) : (
           <>
             {messages.map((message) => (
-              <div key={message.id} className="group">
+              <div key={message.id} className="group animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
                 <MessageItem message={message} onCopy={onCopyMessage} />
               </div>
             ))}
