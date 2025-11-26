@@ -24,7 +24,7 @@ def get_patent_by_id(id : str) -> str:
         return f"\n제목: {response.data[0]['invention_title']}\n내용: {response.data[0]['abstract_content']}\n"
 
     except Exception as e:
-        return f"검색 중 오류가 발생했습니다: {str(e)}"
+        return f"get_patent_by_id Error: {str(e)}"
 
 @tool
 def vector_db_search(query: str) -> str:
@@ -70,4 +70,4 @@ def vector_db_search(query: str) -> str:
         return "\n\n".join(results)
         
     except Exception as e:
-        return f"검색 중 오류가 발생했습니다: {str(e)}"
+        return f"vector_db_search Error: {str(e)}"

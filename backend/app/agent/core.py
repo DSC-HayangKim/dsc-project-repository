@@ -8,7 +8,7 @@ from app.agent.tools.vector_db import vector_db_search, get_patent_by_id
 from app.core import settings
 
 
-def get_llm(llm_type: str = "openai"):
+def get_llm(llm_type: str):
     """
     지정된 타입에 따라 LLM 인스턴스를 반환합니다.
     
@@ -37,7 +37,7 @@ def get_llm(llm_type: str = "openai"):
     else:
         raise ValueError(f"지원하지 않는 LLM 타입입니다: {llm_type}")
 
-def create_agent_executor(llm_type: str = "openai"):
+def create_agent_executor(llm_type: str):
     """
     주어진 LLM 타입으로 에이전트 실행기를 생성합니다.
     LLM과 도구(Tools)를 바인딩하고 프롬프트를 설정하여 에이전트를 초기화합니다.
@@ -49,8 +49,7 @@ def create_agent_executor(llm_type: str = "openai"):
         Agent: 실행 가능한 에이전트 객체.
     """
     llm = get_llm(llm_type)
-    # tools = [vector_db_search, get_patent_by_id]
-    tools = []
+    tools = [vector_db_search, get_patent_by_id]
     
     # System prompt는 문자열이어야 함
     system_prompt = """당신은 **특허 및 기술 문헌 검색에 특화된 최고 수준의 AI 에이전트**입니다. 당신의 주된 임무는 사용자가 요청하는 모든 특허 및 기술 관련 질문에 대해 정확하고 명확한 정보를 제공하는 것입니다.
@@ -177,9 +176,27 @@ async def process_message_non_streaming(message: str, history: list[tuple[str, s
         result = await agent_executor.ainvoke(
             {"messages": chat_history}
         )
+
+        print(f"[DEBUG] 최종 응답 타입: {type(result)}")
+        print(f"[DEBUG] 최종 응답 키: {result.keys() if isinstance(result, dict) else 'Not a dict'}")
         
         # 결과에서 최종 응답 추출
-        final_response = result.get("output", "응답을 생성할 수 없습니다.")
+        # LangChain agent는 messages 리스트로 결과를 반환
+        if isinstance(result, dict) and "messages" in result:
+            messages = result["messages"]
+            # 마지막 메시지가 AI의 응답
+            if messages and len(messages) > 0:
+                last_message = messages[-1]
+                if hasattr(last_message, 'content'):
+                    final_response = last_message.content
+                else:
+                    final_response = str(last_message)
+            else:
+                final_response = "응답을 생성할 수 없습니다."
+        else:
+            final_response = "응답을 생성할 수 없습니다."
+
+        print(f"[DEBUG] 추출된 응답: {final_response[:100] if len(final_response) > 100 else final_response}")
         return final_response
         
     except Exception as e:

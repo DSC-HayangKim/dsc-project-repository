@@ -1,6 +1,6 @@
 # 변경 전: FROM python:3.10-slim
 # 변경 후: slim을 지웁니다.
-FROM python:3.10
+FROM python:3.13.7
 
 WORKDIR /app
 

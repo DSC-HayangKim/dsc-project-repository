@@ -1,5 +1,4 @@
 from sentence_transformers import SentenceTransformer
-import torch
 
 # Singleton instance
 _model = None
