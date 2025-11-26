@@ -33,66 +33,68 @@ export function MessageItem({ message, onCopy }: MessageItemProps) {
   return (
     <div className="flex justify-start">
       <div className="w-full max-w-3xl">
-        <div className="prose prose-sm dark:prose-invert max-w-none text-foreground">
+        <div className="prose prose-base dark:prose-invert max-w-none text-foreground">
           <ReactMarkdown
             components={{
               h1: ({ ...props }) => (
-                <h1 className="text-lg font-bold mt-4 mb-2" {...props} />
+                <h1 className="text-2xl font-bold mt-6 mb-4" {...props} />
               ),
               h2: ({ ...props }) => (
-                <h2 className="text-base font-bold mt-3 mb-1" {...props} />
+                <h2 className="text-xl font-bold mt-5 mb-3" {...props} />
               ),
               h3: ({ ...props }) => (
-                <h3 className="text-sm font-bold mt-2" {...props} />
+                <h3 className="text-lg font-bold mt-4 mb-2" {...props} />
               ),
               p: ({ ...props }) => (
-                <p className="mb-2 leading-relaxed" {...props} />
+                <p className="mb-4 leading-7 text-[15px]" {...props} />
               ),
               ul: ({ ...props }) => (
                 <ul
-                  className="list-disc list-inside mb-2 space-y-1"
+                  className="list-disc list-outside ml-5 mb-4 space-y-2"
                   {...props}
                 />
               ),
               ol: ({ ...props }) => (
                 <ol
-                  className="list-decimal list-inside mb-2 space-y-1"
+                  className="list-decimal list-outside ml-5 mb-4 space-y-2"
                   {...props}
                 />
               ),
-              li: ({ ...props }) => <li className="text-sm" {...props} />,
+              li: ({ ...props }) => <li className="text-[15px] pl-1" {...props} />,
               code: ({ ...props }) => (
                 <code
-                  className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono"
+                  className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-pink-600 dark:text-pink-400"
                   {...props}
                 />
               ),
               pre: ({ ...props }) => (
                 <pre
-                  className="bg-muted p-3 rounded-lg overflow-x-auto mb-2"
+                  className="bg-slate-950 dark:bg-slate-900 p-4 rounded-lg overflow-x-auto mb-4 text-slate-50 border border-slate-800"
                   {...props}
                 />
               ),
               blockquote: ({ ...props }) => (
                 <blockquote
-                  className="border-l-4 border-blue-500 pl-3 italic text-muted-foreground mb-2"
+                  className="border-l-4 border-violet-500 pl-4 py-1 italic text-muted-foreground mb-4 bg-violet-50/50 dark:bg-violet-900/10 rounded-r"
                   {...props}
                 />
               ),
               table: ({ ...props }) => (
-                <table
-                  className="border-collapse border border-border w-full text-xs mb-2"
-                  {...props}
-                />
+                <div className="overflow-x-auto mb-4 rounded-lg border border-border">
+                  <table
+                    className="w-full border-collapse text-sm"
+                    {...props}
+                  />
+                </div>
               ),
               th: ({ ...props }) => (
                 <th
-                  className="border border-border px-2 py-1 bg-muted font-bold"
+                  className="border-b border-border px-4 py-2 bg-muted/50 font-semibold text-left"
                   {...props}
                 />
               ),
               td: ({ ...props }) => (
-                <td className="border border-border px-2 py-1" {...props} />
+                <td className="border-b border-border px-4 py-2" {...props} />
               ),
             }}
           >

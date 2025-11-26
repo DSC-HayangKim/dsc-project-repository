@@ -83,6 +83,8 @@ export default function ChatPage() {
       const decoder = new TextDecoder();
       let assistantResponse = "";
 
+      let buffer = "";
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -96,6 +98,7 @@ export default function ChatPage() {
             if (data === "[DONE]") continue;
 
             try {
+              let newContent = "";
               // Check if it's a JSON object
               if (data.trim().startsWith("{")) {
                 const parsed = JSON.parse(data);
@@ -105,40 +108,69 @@ export default function ChatPage() {
                 }
 
                 if (parsed.content) {
-                  assistantResponse += parsed.content;
+                  newContent = parsed.content;
                 }
               } else {
                 // Legacy text format fallback
-                assistantResponse += data;
+                newContent = data;
               }
 
-              setMessages((prev) =>
-                prev.map((msg) =>
-                  msg.id === assistantMessageId
-                    ? {
-                        ...msg,
-                        content: assistantResponse,
-                      }
-                    : msg
-                )
-              );
+              if (newContent) {
+                buffer += newContent;
+
+                // 단어 단위(공백, 줄바꿈) 또는 일정 길이 이상일 때 업데이트
+                if (buffer.includes(" ") || buffer.includes("\n") || buffer.length > 5) {
+                  assistantResponse += buffer;
+                  buffer = ""; // 버퍼 초기화
+
+                  setMessages((prev) =>
+                    prev.map((msg) =>
+                      msg.id === assistantMessageId
+                        ? {
+                          ...msg,
+                          content: assistantResponse,
+                        }
+                        : msg
+                    )
+                  );
+                }
+              }
             } catch (e) {
               console.error("Error parsing stream data:", e);
               // Fallback: treat as raw text if parsing fails
-              assistantResponse += data;
-              setMessages((prev) =>
-                prev.map((msg) =>
-                  msg.id === assistantMessageId
-                    ? {
+              buffer += data;
+              if (buffer.includes(" ") || buffer.includes("\n") || buffer.length > 5) {
+                assistantResponse += buffer;
+                buffer = "";
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === assistantMessageId
+                      ? {
                         ...msg,
                         content: assistantResponse,
                       }
-                    : msg
-                )
-              );
+                      : msg
+                  )
+                );
+              }
             }
           }
         }
+      }
+
+      // 남은 버퍼 처리
+      if (buffer) {
+        assistantResponse += buffer;
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantMessageId
+              ? {
+                ...msg,
+                content: assistantResponse,
+              }
+              : msg
+          )
+        );
       }
 
       // Final update to set isStreaming to false
@@ -146,9 +178,9 @@ export default function ChatPage() {
         prev.map((msg) =>
           msg.id === assistantMessageId
             ? {
-                ...msg,
-                isStreaming: false,
-              }
+              ...msg,
+              isStreaming: false,
+            }
             : msg
         )
       );
@@ -160,11 +192,11 @@ export default function ChatPage() {
         prev.map((msg) =>
           msg.id === assistantMessageId
             ? {
-                ...msg,
-                content:
-                  "요청을 처리하는 중 오류가 발생했습니다. 다시 시도해주세요.",
-                isStreaming: false,
-              }
+              ...msg,
+              content:
+                "요청을 처리하는 중 오류가 발생했습니다. 다시 시도해주세요.",
+              isStreaming: false,
+            }
             : msg
         )
       );
