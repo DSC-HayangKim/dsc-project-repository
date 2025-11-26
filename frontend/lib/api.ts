@@ -14,6 +14,8 @@ export async function fetchThreads(): Promise<Thread[]> {
   if (!response.ok) {
     throw new Error("Failed to fetch threads");
   }
+
+  console.log(response.json());
   const data = await response.json();
 
   if (!Array.isArray(data)) {
