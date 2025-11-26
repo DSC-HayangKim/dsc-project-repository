@@ -5,6 +5,29 @@ from app.core.embedding import get_embedding
 from app.db import supabase
 
 @tool
+def get_patent_by_applicant_number(application_number: str) -> str:
+    """
+    출원번호로 특허 정보를 조회합니다.
+
+    Args:
+        application_number (str): 특허의 출원번호.
+
+    Returns:
+        str: 출원번호에 해당하는 특허 정보 (JSON 문자열).
+    """
+
+    print(f"[DEBUG] get_patent_by_applicant_number Agent Used by query : {application_number}")
+    try:
+        response = supabase.table("patents").select("*").eq("application_number", application_number).execute()
+        if response.data:
+            return str(response.data[0])
+        else:
+            return "해당 출원번호로 특허를 찾을 수 없습니다."
+    except Exception as e:
+        return f"특허 정보를 조회하는 중 오류가 발생했습니다: {e}"
+
+
+@tool
 def get_patent_by_id(id : str) -> str:
     """
     ID로 특허 정보를 조회합니다.
@@ -16,8 +39,10 @@ def get_patent_by_id(id : str) -> str:
         str: 특허 정보.
     """
 
+    print(f"[DEBUG] get_patent_by_id Agent Used by query : {id}")
+
     try:
-        response = supabase.table("patents").select("*").eq("id", id).execute()
+        response = supabase.table("patents").select("*").eq("_id", id).execute()
         if not response.data:
             return "검색 결과가 없습니다."
 
@@ -67,8 +92,9 @@ def vector_db_search(query: str) -> str:
             applicant = doc.get("applicant_name", "출원인 불명")
             app_number = doc.get("application_number", "출원번호 불명")
             applicant_date = doc.get("application_date", "출원시기 불명")
+            _id = doc.get("_id", "ID 불명")
 
-            results.append(f"[제목: {title}]\n(유사도: {similarity:.4f})\n내용: {summary[:300]}...\n출원인: {applicant}\n출원번호: {app_number}\n출원시기: {applicant_date}")
+            results.append(f"_id: {_id}\n제목: {title}\n(유사도: {similarity:.4f})\n내용: {summary[:300]}...\n출원인: {applicant}\n출원번호: {app_number}\n출원시기: {applicant_date}")
             
         return "\n\n".join(results)
         
@@ -80,13 +106,22 @@ def vector_db_search(query: str) -> str:
 def get_contact_info_by_applicant(applicant: str):
     """
     신청인 이름으로 연락 방법을 조회합니다.
+    사용시 주의사항 : 
+    1. 신청인 이름을 정확하게 입력해야 합니다.
+    2. 신청인 이름은 기관, 학교 단위로 검색됩니다. 산학협력단 키워드를 넣지 마십시오.
+    3. 신청인 이름은 alike로 검색됩니다.
 
     Args:
-        applicant (str): 연락처를 조회할 신청인 이름.
+        applicant (str): 연락처를 조회할 신청인 이름(기관, 학교 단위로 검색하세요 alike로 검색됩니다).
 
     Returns:
         str: 신청인의 연락 방법(평문)
     """
+
+    applicant = applicant.replace('산학협력단', '').strip()
+    if applicant == '':
+        return "검색 결과가 없습니다."
+    
 
     print(f"[DEBUG] get_contact_info_by_applicant Agent Used by query : {applicant}")
     try:

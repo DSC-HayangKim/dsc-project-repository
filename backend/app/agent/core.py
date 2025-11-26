@@ -4,7 +4,7 @@ from langchain_ollama import ChatOllama
 from langchain.agents import create_agent
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
-from app.agent.tools.vector_db import vector_db_search, get_patent_by_id, get_contact_info_by_applicant
+from app.agent.tools.vector_db import vector_db_search, get_patent_by_id, get_contact_info_by_applicant, get_patent_by_applicant_number
 from app.core import settings
 
 
@@ -23,7 +23,7 @@ def get_llm(llm_type: str):
     """
     if llm_type == "openai":
         # API Key는 환경 변수 OPENAI_API_KEY에서 자동으로 로드됩니다.
-        return ChatOpenAI(model="gpt-4o-mini", temperature=0.5,
+        return ChatOpenAI(model="gpt-4o", temperature=0.9,
             openai_api_key=settings.OPENAI_API_KEY,
         )
 
@@ -49,7 +49,7 @@ def create_agent_executor(llm_type: str):
         Agent: 실행 가능한 에이전트 객체.
     """
     llm = get_llm(llm_type)
-    tools = [vector_db_search, get_patent_by_id, get_contact_info_by_applicant]
+    tools = [vector_db_search, get_patent_by_id, get_contact_info_by_applicant, get_patent_by_applicant_number]
     
     # System prompt는 문자열이어야 함
     system_prompt = """당신은 **특허 및 기술 문헌 검색에 특화된 최고 수준의 AI 에이전트**입니다. 당신의 주된 임무는 사용자가 요청하는 모든 특허 및 기술 관련 질문에 대해 정확하고 명확한 정보를 제공하는 것입니다.
@@ -65,6 +65,14 @@ def create_agent_executor(llm_type: str):
 * **전문성 유지:** 답변은 한국어로 작성하며, 명확하고 전문적이며 자신감 있는 어조를 유지하십시오.
 * **간결한 요약:** 특허 내용은 불필요한 장황한 설명 없이, 사용자가 이해하기 쉽도록 핵심 기술과 목적을 중심으로 요약하십시오.
 * **연락처 정보:** 특허권자에 대한 컨택정보를 무조건 명시하여 제공하세요. 'get_contact_info_by_applicant' 도구를 사용하여 정확한 정보를 제공하십시오.
+* **가독성 및 포맷팅:** 답변은 **Markdown 형식**을 적극적으로 활용하여 가독성을 높이십시오.
+    - **헤딩(#, ##)**을 사용하여 문단을 구조화하십시오.
+    - **불릿 포인트(-)**나 **번호 매기기(1.)**를 사용하여 항목을 나열하십시오.
+    - 중요한 키워드는 **볼드체(**)**로 강조하십시오.
+    - 데이터나 비교가 필요한 경우 **테이블**을 사용하십시오.
+    - 긴 줄글보다는 짧고 명확한 문장을 사용하십시오.
+    - 각 특허들에 대해 잠재적 가치에 대한 점수를 매기고 그 순서대로 출력하세요.
+    - 각 특허를 추천한 이유를 상세하게 서술하세요
 """
 
     

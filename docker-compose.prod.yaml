@@ -1,0 +1,33 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: dockerfile.prod
+
+    environment:
+      # - DEV_MODE=development
+      - DEV_MODE=production
+    env_file:
+      - ./backend/.env.prod
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: dockerfile.prod
+    environment:
+      # - NODE_ENV=development
+      - NODE_ENV=production
+  nginx:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+
+    environment:
+      TZ: "Asia/Seoul"
+
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
