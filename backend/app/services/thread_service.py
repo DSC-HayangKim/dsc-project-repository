@@ -4,7 +4,7 @@ from app.schemas.thread import Thread
 
 class ThreadService:
     @staticmethod
-    async def get_threads(user_id: int, skip: int = 0, limit: int = 100) -> List[Thread]:
+    async def get_threads(user_id: int, skip: int = 0, limit: int = 100) :
         """
         특정 사용자의 스레드를 생성일 기준 내림차순으로 조회합니다.
         Supabase Client를 직접 사용하여 데이터를 조회합니다.
@@ -26,7 +26,9 @@ class ThreadService:
             .execute()
 
         # Pydantic 모델로 변환
-        return [Thread(**item) for item in response.data]
+        # Pydantic 모델로 변환하지 않고 dictionary 형태로 반환
+        return response.data
+        #return [Thread(**item) for item in response.data]
 
     @staticmethod
     async def create_thread(user_id: int) -> Thread:
