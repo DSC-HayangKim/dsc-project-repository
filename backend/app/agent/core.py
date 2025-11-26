@@ -80,8 +80,6 @@ async def process_message(message: str, history: list[tuple[str, str]] = []):
     Yields:
         str: 에이전트 응답의 청크.
     """
-    print(f"[DEBUG] process_message 시작 - message: {message[:50] if len(message) > 50 else message}")
-    print(f"[DEBUG] history 길이: {len(history)}")
     
     try:
         # 1. History 변환 - 이전 대화 내역
@@ -97,46 +95,25 @@ async def process_message(message: str, history: list[tuple[str, str]] = []):
         
         # 2. 현재 사용자 메시지 추가
         chat_history.append(HumanMessage(content=message))
-        print(f"[DEBUG] chat_history 구성 완료. 총 {len(chat_history)}개 메시지")
 
         # 3. 에이전트 실행기 생성
-        print(f"[DEBUG] 에이전트 실행기 생성 중...")
         agent_executor = create_agent_executor(llm_type="openai")
-        print(f"[DEBUG] 에이전트 실행기 생성 완료")
 
         # 4. 에이전트 실행 및 스트리밍
-        print(f"[DEBUG] 에이전트 스트리밍 시작...")
-        chunk_count = 0
-        event_types = set()
         async for event in agent_executor.astream_events(
             {"messages": chat_history},
             version="v1"
         ):
             kind = event["event"]
-            event_types.add(kind)
-            
-            # 모든 이벤트 타입 출력 (처음 5개만)
-            if len(event_types) <= 5:
-                print(f"[DEBUG] 이벤트 타입 발견: {kind}")
             
             # 챗 모델에서 생성된 청크를 필터링
             if kind == "on_chat_model_stream":
                 chunk = event["data"]["chunk"]
                 # 청크에 내용이 있고, 그것이 문자열이면 yield
                 if hasattr(chunk, 'content') and isinstance(chunk.content, str):
-                    chunk_count += 1
-                    if chunk_count <= 3 or chunk_count % 10 == 0:  # 처음 3개와 이후 10개마다만 출력
-                        print(f"[DEBUG] Chunk {chunk_count}: {chunk.content[:20] if len(chunk.content) >20 else chunk.content}")
                     yield chunk.content
                 elif isinstance(chunk, str):
-                    chunk_count += 1
-                    if chunk_count <= 3 or chunk_count % 10 == 0:
-                        print(f"[DEBUG] Chunk {chunk_count} (str): {chunk[:20] if len(chunk) > 20 else chunk}")
                     yield chunk
-        
-        print(f"[DEBUG] 발견된 이벤트 타입들: {event_types}")
-        print(f"[DEBUG] 스트리밍 완료. 총 {chunk_count}개 청크")
-        
     except Exception as e:
         print(f"[ERROR] process_message 에러: {type(e).__name__}: {str(e)}")
         import traceback

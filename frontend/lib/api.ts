@@ -86,7 +86,7 @@ export async function fetchUserInfo(): Promise<User | null> {
 }
 
 /**
- * @deprecated Use sendMessageNonStreaming instead for better stability
+ * Sends a message to the chat API and returns a stream reader.
  */
 export async function sendMessage(
   message: string,

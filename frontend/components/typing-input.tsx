@@ -65,14 +65,14 @@ export default function TypingInput({ onSearch }: TypingInputProps) {
             placeholder={displayPlaceholder}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            className="w-full px-4 py-3 pl-12 rounded-lg border border-border bg-white/50 backdrop-blur placeholder:text-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            className="w-full h-12 px-4 pl-12 rounded-lg border border-border bg-white/50 backdrop-blur placeholder:text-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
           />
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
         </div>
         <Button
           type="submit"
           size="lg"
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:cursor-pointer text-white px-8"
+          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:cursor-pointer text-white px-8 h-12"
         >
           검색
         </Button>

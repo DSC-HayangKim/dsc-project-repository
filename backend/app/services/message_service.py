@@ -40,8 +40,6 @@ class MessageService:
             full_response += chunk
             yield chunk
 
-        print(f"AI 에게 {full_response}, 응답 받음\n")
-
         # 3. Save Agent Message
         await MessageService.save_message(MessageCreate(
             thread_id=session_id,

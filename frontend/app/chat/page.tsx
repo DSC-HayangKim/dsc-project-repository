@@ -8,7 +8,7 @@ import {
   fetchThreads,
   createThread,
   fetchMessages,
-  sendMessageNonStreaming,
+  sendMessage,
 } from "@/lib/api";
 
 export default function ChatPage() {
@@ -79,19 +79,70 @@ export default function ChatPage() {
         setThreads((prev) => [newThread, ...prev]);
       }
 
-      const response = await sendMessageNonStreaming(
-        currentInput,
-        currentThreadId
-      );
+      const reader = await sendMessage(currentInput, currentThreadId);
+      const decoder = new TextDecoder();
+      let assistantResponse = "";
 
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n");
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const data = line.slice(6);
+            if (data === "[DONE]") continue;
+
+            try {
+              // Check if it's a JSON object (for end_stream event)
+              if (data.trim().startsWith("{")) {
+                const parsed = JSON.parse(data);
+                if (parsed.event === "end_stream") {
+                  continue;
+                }
+              }
+
+              // It's a text chunk
+              assistantResponse += data;
+
+              setMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id === assistantMessageId
+                    ? {
+                        ...msg,
+                        content: assistantResponse,
+                      }
+                    : msg
+                )
+              );
+            } catch (e) {
+              // If not JSON, treat as text (legacy support or simple string)
+              assistantResponse += data;
+              setMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id === assistantMessageId
+                    ? {
+                        ...msg,
+                        content: assistantResponse,
+                      }
+                    : msg
+                )
+              );
+            }
+          }
+        }
+      }
+
+      // Final update to set isStreaming to false
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === assistantMessageId
             ? {
-              ...msg,
-              content: response,
-              isStreaming: false,
-            }
+                ...msg,
+                isStreaming: false,
+              }
             : msg
         )
       );
@@ -103,11 +154,11 @@ export default function ChatPage() {
         prev.map((msg) =>
           msg.id === assistantMessageId
             ? {
-              ...msg,
-              content:
-                "요청을 처리하는 중 오류가 발생했습니다. 다시 시도해주세요.",
-              isStreaming: false,
-            }
+                ...msg,
+                content:
+                  "요청을 처리하는 중 오류가 발생했습니다. 다시 시도해주세요.",
+                isStreaming: false,
+              }
             : msg
         )
       );
